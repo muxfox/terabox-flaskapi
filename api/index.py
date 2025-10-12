@@ -36,14 +36,14 @@ app = Flask(__name__)
 
 cookies = {
     'PANWEB': '1',
-    '__bid_n': '1900b9f02442253dfe4207',
-    '__stripe_mid': 'b85d61d2-4812-4eeb-8e41-b1efb3fa2a002a54d5',
-    'ndus': 'YylKpiCteHuiYEqq8n75Tb-JhCqmg0g4YMH03MYD',
-    'csrfToken': '_CFePPJLR7i9z5IPx1cQydow',
-    'browserid': '3y0kiWkfKhPHtg5J8dZFSYtwNzncsGY7n3JOtIJsdZ6Wo4XfJxNeA28UtIE=',
+    '__bid_n': '197112bc411de5993a4207',
+    '__stripe_mid': 'a6c0c66c-7539-4870-8522-e7b144b9d478bed8fb',
+    'ndus': 'Y2cfn3MteHuiQN6wECay4fagha_iyT7m6UtHN-g9',
+    'csrfToken': 'dCuBQ5yTh6jYHV8IpZWslQqx',
+    'browserid': 'ViZStXdF3aHo9kfU32GFmL82CdAvTTFLkWvHePYESjnDTjq6Oi2vC2c0AoI=',
     'lang': 'en',
-    'ndut_fmt': '3ABC40FE764692D905796B3BF93947ADFDC570385C17E3A68137C9D7451429E0',
-    '__stripe_sid': 'b2997993-3227-4e11-a688-c355d62839c678db3c',
+    'ndut_fmt': '051636D53116ECBA25BF0BA7E9786C7DBBDA044198934E600C3B496D1124E901',
+    '__stripe_sid': '98b65fed-c39c-44b8-81eb-5f075503ac688d7aa9c',
 }
 
 #WORKING COOKIES
