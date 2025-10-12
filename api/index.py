@@ -1,6 +1,5 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 import os
-from flask import request, jsonify
 import aiohttp
 import asyncio
 import logging
@@ -8,32 +7,10 @@ from urllib.parse import parse_qs, urlparse
 
 app = Flask(__name__)
 
-#UNWORKING COOKIES JUST FOR DEMO
-# cookies = {
-#     'ndut_fmt': 'C96770F2F5849984C2BA2A3F6284E3769F4147D175CD113DA30A8F2DE4CCD1FF',
-#     'ndus': 'YvdD63MteHuiw0IgOC3Kdp-b5nahyIkzD_XdJDj2',
-#     '__bid_n': '1900b9f02442253dfe4207',
-#     '__stripe_mid': 'f5763c3a-0bc5-455f-8bbc-ef5a3a30f25d212bf2',
-#     '__stripe_sid': '74502fe5-8572-4d7d-8171-6b47b1c5faf170be67',
-#     'browserid': 'ujWfJR9sAO3NO7oCPbQ5IF_P6feJPiSxonWQoahA05CtJ1XhBmDy8oEXuDs=',
-#     'csrfToken': 'X-KjyUF6Ezr5GVv53zbJSTeh',
-#     'lang': 'en',
-#     'PANWEB': '1'
-# }
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
-
-#WORKING COOKIES
-# cookies = {
-#     'PANWEB': '1',
-#     'browserid': '45Cbkepkx0J0bqgQi1e1ubtbstmebahkYOYm3ZWuIktZFHaUuRjvdeeHz24=',
-#     'lang': 'en',
-#     '__bid_n': '196b885ed7339790814207',
-#     'ndut_fmt': '26BE3C564003BEB97F4ED69DEBD9974F6291C708F2B2B419F0B6282675131E1C',
-#     '__stripe_mid': '31fc92f3-a12a-480f-9e44-53f30f08258a75588e',
-#     'ndus': 'YdZTyX1peHuimlux_D6dLGQBeHmj0r3M3trkunHB',
-#     'csrfToken': 'C84Gc54sleTMoZxBx24k4SM7',
-# }
-
+# Working Cookies
 cookies = {
     'PANWEB': '1',
     '__bid_n': '197112bc411de5993a4207',
@@ -46,19 +23,6 @@ cookies = {
     '__stripe_sid': '98b65fed-c39c-44b8-81eb-5f075503ac688d7aa9c',
 }
 
-#WORKING COOKIES
-# cookies = {
-#     'PANWEB': '1',
-#     'browserid': 'p4nVrnlkUVKcnbbJHnIClAhSL5uXs01e-0svx0bm7KHLUB6wIVvCUNGLIpU=',
-#     'lang': 'en',
-#     '__bid_n': '1900b9f02442253dfe4207',
-#     'ndut_fmt': '5E7E5AFA065E159EF56CFE164FCF084C72B603BE3611911C28550443BDC08A4B',
-#     '__stripe_mid': 'b85d61d2-4812-4eeb-8e41-b1efb3fa2a002a54d5',
-#     'ndus': 'YylKpiCteHuiYEqq8n75Tb-JhCqmg0g4YMH03MYD',
-#     'csrfToken': 'zAVdnQAVegC92-ah6pmLf6Dl',
-# }
-
-
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
     'Accept': '*/*',
@@ -66,74 +30,71 @@ headers = {
 }
 
 
-
 def find_between(string, start, end):
-  start_index = string.find(start) + len(start)
-  end_index = string.find(end, start_index)
-  return string[start_index:end_index]
+    """Extract substring between start and end markers"""
+    start_index = string.find(start) + len(start)
+    end_index = string.find(end, start_index)
+    return string[start_index:end_index]
 
 
 async def fetch_download_link_async(url):
-  try:
-      async with aiohttp.ClientSession(cookies=cookies, headers=headers) as session:
-          async with session.get(url) as response1:
-              response1.raise_for_status()
-              response_data = await response1.text()
-              js_token = find_between(response_data, 'fn%28%22', '%22%29')
-              #print(js_token)
-              log_id = find_between(response_data, 'dp-logid=', '&')
-             # print(log_id)
+    """Fetch download links for TeraBox files (API version 1)"""
+    try:
+        async with aiohttp.ClientSession(cookies=cookies, headers=headers) as session:
+            async with session.get(url) as response1:
+                response1.raise_for_status()
+                response_data = await response1.text()
+                js_token = find_between(response_data, 'fn%28%22', '%22%29')
+                log_id = find_between(response_data, 'dp-logid=', '&')
 
-              if not js_token or not log_id:
-                  return None
+                if not js_token or not log_id:
+                    return None
 
-              request_url = str(response1.url)
-              surl = request_url.split('surl=')[1]
-              params = {
-                  'app_id': '250528',
-                  'web': '1',
-                  'channel': 'dubox',
-                  'clienttype': '0',
-                  'jsToken': js_token,
-                  'dplogid': log_id,
-                  'page': '1',
-                  'num': '20',
-                  'order': 'time',
-                  'desc': '1',
-                  'site_referer': request_url,
-                  'shorturl': surl,
-                  'root': '1'
-              }
+                request_url = str(response1.url)
+                surl = request_url.split('surl=')[1]
+                params = {
+                    'app_id': '250528',
+                    'web': '1',
+                    'channel': 'dubox',
+                    'clienttype': '0',
+                    'jsToken': js_token,
+                    'dplogid': log_id,
+                    'page': '1',
+                    'num': '20',
+                    'order': 'time',
+                    'desc': '1',
+                    'site_referer': request_url,
+                    'shorturl': surl,
+                    'root': '1'
+                }
 
-              async with session.get('https://www.1024tera.com/share/list', params=params) as response2:
-                  response_data2 = await response2.json()
-                #   print(response_data2)
-                  #print("res2", response_data2)
-                  if 'list' not in response_data2:
-                      return None
+                async with session.get('https://www.1024tera.com/share/list', params=params) as response2:
+                    response_data2 = await response2.json()
+                    
+                    if 'list' not in response_data2:
+                        return None
 
-                  if response_data2['list'][0]['isdir'] == "1":
-                      params.update({
-                          'dir': response_data2['list'][0]['path'],
-                          'order': 'asc',
-                          'by': 'name',
-                          'dplogid': log_id
-                      })
-                      params.pop('desc')
-                      params.pop('root')
+                    if response_data2['list'][0]['isdir'] == "1":
+                        params.update({
+                            'dir': response_data2['list'][0]['path'],
+                            'order': 'asc',
+                            'by': 'name',
+                            'dplogid': log_id
+                        })
+                        params.pop('desc')
+                        params.pop('root')
 
-                      async with session.get('https://www.1024tera.com/share/list', params=params) as response3:
-                          response_data3 = await response3.json()
-                        #   print(response_data3)
-                          #print("res3", response_data3)
-                          if 'list' not in response_data3:
-                              return None
-                          return response_data3['list']
-                  #print(response_data2['list'])
-                  return response_data2['list']
-  except aiohttp.ClientResponseError as e:
-      print(f"Error fetching download link: {e}")
-      return None
+                        async with session.get('https://www.1024tera.com/share/list', params=params) as response3:
+                            response_data3 = await response3.json()
+                            
+                            if 'list' not in response_data3:
+                                return None
+                            return response_data3['list']
+                    
+                    return response_data2['list']
+    except aiohttp.ClientResponseError as e:
+        print(f"Error fetching download link: {e}")
+        return None
 
 
 def extract_thumbnail_dimensions(url: str) -> str:
@@ -151,82 +112,7 @@ def extract_thumbnail_dimensions(url: str) -> str:
 
 
 async def get_formatted_size_async(size_bytes):
-  try:
-      size_bytes = int(size_bytes)
-      size = size_bytes / (1024 * 1024) if size_bytes >= 1024 * 1024 else (
-          size_bytes / 1024 if size_bytes >= 1024 else size_bytes
-      )
-      unit = "MB" if size_bytes >= 1024 * 1024 else ("KB" if size_bytes >= 1024 else "bytes")
-
-      return f"{size:.2f} {unit}"
-  except Exception as e:
-      print(f"Error getting formatted size: {e}")
-      return None
-
-async def format_message(link_data):
-  # Process thumbnails
-    thumbnails = {}
-    if 'thumbs' in link_data:
-        for key, url in link_data['thumbs'].items():
-            if url:  # Skip empty URLs
-                dimensions = extract_thumbnail_dimensions(url)
-                thumbnails[dimensions] = url
-#   if link_data
-    file_name = link_data["server_filename"]
-    file_size = await get_formatted_size_async(link_data["size"])
-    download_link = link_data["dlink"]
-    sk = {
-      'Title': file_name,
-      'Size': file_size,
-      'Direct Download Link': download_link,
-      'Thumbnails': thumbnails
-    }
-    return sk
-
-@app.route('/')
-def hello_world():
-  #result = bot.get_me()
-  response = {'status': 'success', 'message': 'Working Fully',' Contact': '@GuyXD'}
-  return response
-
-
-@app.route(rule='/api', methods=['GET'])
-async def Api():
-  try:
-      url = request.args.get('url', 'No URL Provided')
-      logging.info(f"Received request for URL: {url}")
-      link_data = await fetch_download_link_async(url)
-      if link_data:
-          tasks = [format_message(item) for item in link_data]
-          formatted_message = await asyncio.gather(*tasks)
-        #   formatted_message = await format_message(link_data[0])
-          logging.info(f"Formatted message: {formatted_message}")
-      else:
-          formatted_message = None
-      response = { 'ShortLink': url, 'Extracted Info': formatted_message,'status': 'success'}
-      return jsonify(response)
-  except Exception as e:
-      logging.error(f"An error occurred: {e}")
-      return jsonify({'status': 'error', 'message': str(e), 'Link': url})
-
-@app.route(rule='/help', methods=['GET'])
-async def help():
-    try:
-        response = {'Info': "There is Only one Way to Use This as Show Below",
-                    'Example': 'https://teraboxx.vercel.app/api?url=https://terafileshare.com/s/1_1SzMvaPkqZ-yWokFCrKyA',
-                    'Example2': 'https://teraboxx.vercel.app/api2?url=https://terafileshare.com/s/1_1SzMvaPkqZ-yWokFCrKyA'}
-        return jsonify(response)
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        response = {'Info': "There is Only one Way to Use This as Show Below",
-                    'Example': 'https://teraboxx.vercel.app/api?url=https://terafileshare.com/s/1_1SzMvaPkqZ-yWokFCrKyA',
-                    'Example2': 'https://teraboxx.vercel.app/api2?url=https://terafileshare.com/s/1_1SzMvaPkqZ-yWokFCrKyA'}
-        return jsonify(response)
-
-
-
-
-async def get_formatted_size_async(size_bytes):
+    """Convert bytes to human-readable format"""
     try:
         size_bytes = int(size_bytes)
         size = size_bytes / (1024 * 1024) if size_bytes >= 1024 * 1024 else (
@@ -239,7 +125,30 @@ async def get_formatted_size_async(size_bytes):
         return None
 
 
+async def format_message(link_data):
+    """Format file data with thumbnails"""
+    thumbnails = {}
+    if 'thumbs' in link_data:
+        for key, url in link_data['thumbs'].items():
+            if url:  # Skip empty URLs
+                dimensions = extract_thumbnail_dimensions(url)
+                thumbnails[dimensions] = url
+    
+    file_name = link_data["server_filename"]
+    file_size = await get_formatted_size_async(link_data["size"])
+    download_link = link_data["dlink"]
+    
+    sk = {
+        'Title': file_name,
+        'Size': file_size,
+        'Direct Download Link': download_link,
+        'Thumbnails': thumbnails
+    }
+    return sk
+
+
 async def fetch_download_link_async2(url):
+    """Fetch download links with direct URLs (API version 2)"""
     try:
         async with aiohttp.ClientSession(cookies=cookies, headers=headers) as session:
             async with session.get(url) as response1:
@@ -254,9 +163,7 @@ async def fetch_download_link_async2(url):
                     return None
 
                 request_url = str(response1.url)
-                print(request_url)
                 surl = request_url.split('surl=')[1]
-                print(surl)
 
                 params = {
                     'app_id': '250528',
@@ -322,9 +229,46 @@ async def fetch_download_link_async2(url):
         return None
 
 
+@app.route('/')
+def hello_world():
+    """Root endpoint - API status"""
+    response = {
+        'status': 'success',
+        'message': 'Working Fully',
+        'Contact': '@GuyXD'
+    }
+    return jsonify(response)
+
+
+@app.route(rule='/api', methods=['GET'])
+async def Api():
+    """API v1 - Extract TeraBox file info with thumbnails"""
+    try:
+        url = request.args.get('url', 'No URL Provided')
+        logging.info(f"Received request for URL: {url}")
+        link_data = await fetch_download_link_async(url)
+        
+        if link_data:
+            tasks = [format_message(item) for item in link_data]
+            formatted_message = await asyncio.gather(*tasks)
+            logging.info(f"Formatted message: {formatted_message}")
+        else:
+            formatted_message = None
+        
+        response = {
+            'ShortLink': url,
+            'Extracted Info': formatted_message,
+            'status': 'success'
+        }
+        return jsonify(response)
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        return jsonify({'status': 'error', 'message': str(e), 'Link': url})
+
 
 @app.route(rule='/api2', methods=['GET'])
 async def Api2():
+    """API v2 - Extract TeraBox file info with direct download links"""
     try:
         url = request.args.get('url', 'No URL Provided')
         logging.info(f"Received request for URL: {url}")
@@ -332,9 +276,17 @@ async def Api2():
         link_data = await fetch_download_link_async2(url)
 
         if link_data:
-            response = {'ShortLink': url, 'Extracted Files': link_data, 'status': 'success'}
+            response = {
+                'ShortLink': url,
+                'Extracted Files': link_data,
+                'status': 'success'
+            }
         else:
-            response = {'status': 'error', 'message': 'No files found', 'ShortLink': url}
+            response = {
+                'status': 'error',
+                'message': 'No files found',
+                'ShortLink': url
+            }
 
         return jsonify(response)
 
@@ -343,6 +295,26 @@ async def Api2():
         return jsonify({'status': 'error', 'message': str(e), 'Link': url})
 
 
+@app.route(rule='/help', methods=['GET'])
+async def help():
+    """Help endpoint - API usage documentation"""
+    try:
+        response = {
+            'Info': "There is Only one Way to Use This as Show Below",
+            'Example': 'https://teraboxx.vercel.app/api?url=https://terafileshare.com/s/1_1SzMvaPkqZ-yWokFCrKyA',
+            'Example2': 'https://teraboxx.vercel.app/api2?url=https://terafileshare.com/s/1_1SzMvaPkqZ-yWokFCrKyA'
+        }
+        return jsonify(response)
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        response = {
+            'Info': "There is Only one Way to Use This as Show Below",
+            'Example': 'https://teraboxx.vercel.app/api?url=https://terafileshare.com/s/1_1SzMvaPkqZ-yWokFCrKyA',
+            'Example2': 'https://teraboxx.vercel.app/api2?url=https://terafileshare.com/s/1_1SzMvaPkqZ-yWokFCrKyA'
+        }
+        return jsonify(response)
 
 
-
+# For local development
+if __name__ == '__main__':
+    app.run(debug=True, port=5000, host='0.0.0.0')
