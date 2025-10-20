@@ -16,11 +16,11 @@ cookies = {
     '__bid_n': '197112bc411de5993a4207',
     '__stripe_mid': 'a6c0c66c-7539-4870-8522-e7b144b9d478bed8fb',
     'ndus': 'Y2cfn3MteHuiQN6wECay4fagha_iyT7m6UtHN-g9',
-    'csrfToken': 'dCuBQ5yTh6jYHV8IpZWslQqx',
-    'browserid': 'ViZStXdF3aHo9kfU32GFmL82CdAvTTFLkWvHePYESjnDTjq6Oi2vC2c0AoI=',
+    'csrfToken': 'HkaYarrjxKRRVLt7n2GvDlin',
+    'browserid': 'yD0VvgPjxgUxkxUuahNSktehNoQuNZMkIH3SWF9GzVgjgKur7tInph-VFw8=',
     'lang': 'en',
-    'ndut_fmt': '051636D53116ECBA25BF0BA7E9786C7DBBDA044198934E600C3B496D1124E901',
-    '__stripe_sid': '98b65fed-c39c-44b8-81eb-5f075503ac688d7aa9c',
+    'ndut_fmt': 'F221B11F4DD53955F804D33D6F5EBA57E79A6335A4198A6B700D0816E375AE49',
+    '__stripe_sid': 'e6c30455-9f9e-42b0-b7d7-d73f7f41d9c907a34e',
 }
 
 headers = {
